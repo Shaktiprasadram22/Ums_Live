@@ -4,7 +4,9 @@ scikit-learn
 numpy
 langchain
 langchain-community
+langchain-openai
 faiss-cpu
 tiktoken
 pandas
-fastapi uvicorn
+fastapi
+uvicorn
