@@ -3,11 +3,10 @@ import json
 from openai import OpenAI
 from langchain_openai import OpenAIEmbeddings
 from langchain_community.vectorstores import FAISS
-from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter  # ✅ Yeh correct hai
 from dotenv import load_dotenv
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-
 
 # Load env
 load_dotenv()
@@ -16,7 +15,7 @@ load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 
 # 2️⃣ Load knowledge base
-with open('ums_paths.json', 'r') as f:
+with open('ums_paths.json', 'r', encoding='utf-8') as f:
     ums_data = json.load(f)
 
 documents = []
@@ -41,7 +40,7 @@ print("✅ Vector store created and ready.")
 # 5️⃣ FastAPI app
 app = FastAPI()
 
-# CORS (so your React app can talk to this server)
+# CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -49,7 +48,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Health check endpoint
 @app.get("/health")
 async def health_check():
     return {
@@ -58,22 +56,22 @@ async def health_check():
         "total_documents": len(documents)
     }
 
-# 6️⃣ Query endpoint
 @app.post("/api/query")
 async def query(request: Request):
     body = await request.json()
     question = body.get("question", "")
     if not question:
         return {"answer": "❌ No question provided."}
+    
     similar_docs = vectorstore.similarity_search_with_score(question, k=3)
+    
     if similar_docs:
         answer = similar_docs[0][0].page_content
     else:
         answer = "Sorry, no relevant answer found."
+    
     return {"answer": answer}
 
-
-# ✅ If run directly: start dev server with uvicorn
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
