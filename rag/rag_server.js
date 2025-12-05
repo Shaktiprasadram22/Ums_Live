@@ -8,17 +8,20 @@ import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
 import { Document } from "@langchain/core/documents";
 
 const app = express();
-const PORT = 8000; // 🔥 Same port as your Python FastAPI server
+const PORT = process.env.PORT || 8000;
 
-// Middleware
-app.use(cors());
+// CORS - Allow all origins (update later with your Vercel URL)
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+  })
+);
 app.use(express.json());
 
-// Global vector store
 let vectorstore = null;
 let totalDocuments = 0;
 
-// Initialize RAG system
 async function initializeRAG() {
   try {
     console.log("🔄 Loading knowledge base...");
@@ -50,17 +53,16 @@ async function initializeRAG() {
 
     vectorstore = await FaissStore.fromDocuments(splitDocs, embeddings);
 
-    console.log("✅ Vector store created and ready.");
+    console.log("✅ Vector store ready.");
   } catch (error) {
-    console.error("❌ Error initializing RAG:", error.message);
+    console.error("❌ Error:", error.message);
     process.exit(1);
   }
 }
 
-// Routes
 app.get("/health", (req, res) => {
   res.json({
-    status: "Node.js Express server is running",
+    status: "RAG server is running",
     vectorstore_ready: vectorstore !== null,
     total_documents: totalDocuments,
   });
@@ -75,9 +77,7 @@ app.post("/api/query", async (req, res) => {
     }
 
     if (!vectorstore) {
-      return res
-        .status(503)
-        .json({ answer: "❌ Vector store not initialized." });
+      return res.status(503).json({ answer: "❌ Vector store not ready." });
     }
 
     const similarDocs = await vectorstore.similaritySearchWithScore(
@@ -85,28 +85,24 @@ app.post("/api/query", async (req, res) => {
       3
     );
 
-    let answer;
-    if (similarDocs.length > 0) {
-      answer = similarDocs[0][0].pageContent;
-    } else {
-      answer = "Sorry, no relevant answer found.";
-    }
+    let answer =
+      similarDocs.length > 0
+        ? similarDocs[0][0].pageContent
+        : "Sorry, no relevant answer found.";
 
     res.json({ answer });
   } catch (error) {
-    console.error("Error processing query:", error);
-    res.status(500).json({ answer: "❌ Error processing your query." });
+    console.error("Error:", error);
+    res.status(500).json({ answer: "❌ Error processing query." });
   }
 });
 
-// Start server
 async function startServer() {
   await initializeRAG();
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n🚀 Server running on http://localhost:${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`💬 Query endpoint: POST http://localhost:${PORT}/api/query`);
+    console.log(`\n🚀 RAG Server: http://localhost:${PORT}`);
+    console.log(`📊 Health: http://localhost:${PORT}/health`);
   });
 }
 
