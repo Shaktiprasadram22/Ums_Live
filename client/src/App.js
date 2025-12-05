@@ -2,8 +2,9 @@ import React, { useState, useEffect, useRef } from "react";
 import { Send, MessageCircle, Bot, User } from "lucide-react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
-// (Optional) If you want a Box/Container:
-// import Box from "@mui/material/Box";
+
+// ✅ Production-ready API URL
+const API_BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
 const initialMessages = [
   {
@@ -38,7 +39,7 @@ function App() {
 
   const checkServerConnection = async () => {
     try {
-      const response = await fetch("http://localhost:5000/health");
+      const response = await fetch(`${API_BASE_URL}/health`);
       if (response.ok) {
         setIsConnected(true);
       }
@@ -50,7 +51,7 @@ function App() {
 
   const sendMessageToRAG = async (question) => {
     try {
-      const response = await fetch("http://localhost:5000/api/query", {
+      const response = await fetch(`${API_BASE_URL}/api/query`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -211,7 +212,6 @@ function App() {
         <div className="max-w-4xl mx-auto">
           <div className="flex items-center gap-3">
             <div className="flex-1 relative">
-              {/* --- Material UI Input component instead of plain input --- */}
               <TextField
                 variant="outlined"
                 size="small"
@@ -231,7 +231,6 @@ function App() {
                 }}
               />
             </div>
-            {/* --- Material UI Send Button --- */}
             <Button
               variant="contained"
               color="warning"
@@ -254,7 +253,7 @@ function App() {
           </div>
           <p className="text-xs text-gray-500 mt-2 text-center">
             Press Enter to send • UMS Chatbot v1.0 •{" "}
-            {isConnected ? "Connected to RAG" : "Disconnected"}
+            {isConnected ? "Connected to Server" : "Disconnected"}
           </p>
         </div>
       </div>
@@ -263,4 +262,3 @@ function App() {
 }
 
 export default App;
-  

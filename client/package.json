@@ -1,11 +1,16 @@
 {
-  "name": "client",
+  "name": "ums-chatbot-client",
   "version": "1.0.0",
-  "description": "",
+  "description": "UMS Chatbot Frontend",
   "scripts": {
-    "start": "parcel public/index.html --port 3000"
+    "start": "parcel public/index.html --port 3000",
+    "build": "parcel build public/index.html --dist-dir dist --public-url ./"
   },
-  "keywords": [],
+  "keywords": [
+    "ums",
+    "chatbot",
+    "react"
+  ],
   "author": "",
   "license": "ISC",
   "dependencies": {
