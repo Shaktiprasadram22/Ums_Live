@@ -13,10 +13,18 @@ const PORT = process.env.PORT || 8000;
 // CORS - Allow all origins (update later with your Vercel URL)
 app.use(
   cors({
-    origin: "*",
+    origin: [
+      "https://ums-live.vercel.app", // ✅ Your Vercel frontend
+      "https://ums-live.onrender.com", // ✅ Your backend server
+      "http://localhost:3000", // Local frontend
+      "http://localhost:5000", // Local backend
+    ],
     credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 
 let vectorstore = null;

@@ -7,7 +7,17 @@ const PORT = process.env.PORT || 5000; // ✅ Use Render's PORT
 const RAG_API_URL = process.env.RAG_API_URL || "http://localhost:8000"; // ✅ Environment variable
 
 // Middleware
-app.use(cors());
+app.use(
+  cors({
+    origin: [
+      "https://ums-live.vercel.app", // ✅ Your Vercel frontend
+      "http://localhost:3000", // Keep for local development
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 // Health check endpoint
