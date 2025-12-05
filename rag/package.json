@@ -1,0 +1,33 @@
+{
+  "name": "ums-rag-server",
+  "version": "1.0.0",
+  "type": "module",
+  "description": "UMS Chatbot RAG Server (Node.js)",
+  "main": "rag_server.js",
+  "scripts": {
+    "start": "node rag_server.js",
+    "dev": "nodemon rag_server.js"
+  },
+  "keywords": [
+    "rag",
+    "chatbot",
+    "openai",
+    "faiss"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@langchain/community": "^0.3.20",
+    "@langchain/core": "^0.3.29",
+    "@langchain/openai": "^0.3.17",
+    "@langchain/textsplitters": "^0.1.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "faiss-node": "^0.5.1",
+    "langchain": "^0.3.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.9"
+  }
+}
