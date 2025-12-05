@@ -4,8 +4,9 @@ import axios from "axios";
 
 const app = express();
 const PORT = process.env.PORT || 5000; // ✅ Use Render's PORT
-const RAG_API_URL = process.env.RAG_API_URL || "http://localhost:8000"; // ✅ Environment variable
+// const RAG_API_URL = process.env.RAG_API_URL || "http://localhost:8000"; // ✅ Environment variable
 
+const RAG_API_URL = process.env.RAG_API_URL;
 // Middleware
 app.use(
   cors({
