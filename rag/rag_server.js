@@ -10,15 +10,24 @@ import { Document } from "@langchain/core/documents";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// CORS - Allow all origins (update later with your Vercel URL)
+// ----------------- SECURE CORS -----------------
+// Only allow backend (Render) + localhost requests
 app.use(
   cors({
-    origin: [
-      "https://ums-live.vercel.app", // ✅ Your Vercel frontend
-      "https://ums-live.onrender.com", // ✅ Your backend server
-      "http://localhost:3000", // Local frontend
-      "http://localhost:5000", // Local backend
-    ],
+    origin: (origin, callback) => {
+      const allowed = [
+        "https://ums-live.onrender.com", // ONLY your backend can access RAG
+        "http://localhost:5000", // Local backend (dev)
+        "http://localhost:3000", // Local frontend (dev only)
+      ];
+
+      if (!origin || allowed.includes(origin)) {
+        callback(null, true);
+      } else {
+        console.log("❌ Blocked by RAG CORS:", origin);
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
@@ -30,6 +39,7 @@ app.use(express.json());
 let vectorstore = null;
 let totalDocuments = 0;
 
+// ----------------- LOAD VECTORSTORE -----------------
 async function initializeRAG() {
   try {
     console.log("🔄 Loading knowledge base...");
@@ -68,6 +78,7 @@ async function initializeRAG() {
   }
 }
 
+// ----------------- HEALTH CHECK -----------------
 app.get("/health", (req, res) => {
   res.json({
     status: "RAG server is running",
@@ -76,6 +87,7 @@ app.get("/health", (req, res) => {
   });
 });
 
+// ----------------- QUERY ENDPOINT -----------------
 app.post("/api/query", async (req, res) => {
   try {
     const { question } = req.body;
@@ -105,11 +117,12 @@ app.post("/api/query", async (req, res) => {
   }
 });
 
+// ----------------- START SERVER -----------------
 async function startServer() {
   await initializeRAG();
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n🚀 RAG Server: http://localhost:${PORT}`);
+    console.log(`🚀 RAG Server: http://localhost:${PORT}`);
     console.log(`📊 Health: http://localhost:${PORT}/health`);
   });
 }
