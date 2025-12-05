@@ -10,15 +10,26 @@ const RAG_API_URL = process.env.RAG_API_URL;
 // Middleware
 app.use(
   cors({
-    origin: [
-      "https://ums-live.vercel.app", // ✅ Your Vercel frontend
-      "http://localhost:3000", // Keep for local development
-    ],
+    origin: (origin, callback) => {
+      const allowed = ["https://ums-live.vercel.app", "http://localhost:3000"];
+
+      // Allow all Vercel preview domains
+      if (
+        !origin ||
+        allowed.includes(origin) ||
+        origin.endsWith(".vercel.app")
+      ) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
     methods: ["GET", "POST", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
+
 app.use(express.json());
 
 // Health check endpoint
