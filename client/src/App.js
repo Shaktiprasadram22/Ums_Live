@@ -3,12 +3,12 @@ import { Send, MessageCircle, Bot, User } from "lucide-react";
 import TextField from "@mui/material/TextField";
 import Button from "@mui/material/Button";
 
-// ✅ API URL from environment variables
+// ✅ API URL configuration
 const API_BASE_URL = (process.env.REACT_APP_API_URL || "http://localhost:8000")
   .trim()
   .replace(/\/+$/, "");
 
-console.log("🔗 API Base URL:", API_BASE_URL); // Debug log
+console.log("🔗 Connecting to RAG Server:", API_BASE_URL);
 
 const initialMessages = [
   {
@@ -39,14 +39,14 @@ function App() {
 
   useEffect(() => {
     checkServerConnection();
-    // Check connection every 30 seconds
     const interval = setInterval(checkServerConnection, 30000);
     return () => clearInterval(interval);
   }, []);
 
   const checkServerConnection = async () => {
     try {
-      console.log("🔍 Checking server connection...");
+      console.log("🔍 Checking connection to:", `${API_BASE_URL}/health`);
+
       const response = await fetch(`${API_BASE_URL}/health`, {
         method: "GET",
         headers: {
@@ -59,18 +59,18 @@ function App() {
         console.log("✅ Server connected:", data);
         setIsConnected(true);
       } else {
-        console.warn("⚠️ Server responded with error:", response.status);
+        console.warn("⚠️ Server error:", response.status);
         setIsConnected(false);
       }
     } catch (error) {
-      console.warn("❌ Server connection failed:", error?.message || error);
+      console.warn("❌ Connection failed:", error.message);
       setIsConnected(false);
     }
   };
 
   const sendMessageToRAG = async (question) => {
     try {
-      console.log(`📤 Sending to: ${API_BASE_URL}/api/query`);
+      console.log("📤 Sending query to:", `${API_BASE_URL}/api/query`);
       console.log("📝 Question:", question);
 
       const response = await fetch(`${API_BASE_URL}/api/query`, {
@@ -81,26 +81,24 @@ function App() {
         body: JSON.stringify({ question }),
       });
 
+      console.log("📡 Response status:", response.status);
+
       if (!response.ok) {
         const errorText = await response.text();
-        console.error(`❌ HTTP ${response.status}:`, errorText);
-        throw new Error(`Server error (${response.status})`);
+        console.error("❌ Server error:", errorText);
+        throw new Error(`Server returned ${response.status}`);
       }
 
       const data = await response.json();
-      console.log("✅ Received response:", data);
+      console.log("✅ Received answer:", data);
 
-      return (
-        data.answer ||
-        "Sorry, I couldn't process your question. Please try again."
-      );
+      return data.answer || "Sorry, I couldn't process your question.";
     } catch (error) {
-      console.error("❌ Error querying RAG:", error);
+      console.error("❌ Error details:", error);
 
-      // More helpful error messages
       if (error.message.includes("Failed to fetch")) {
-        return "🔴 Cannot connect to the server. Please make sure the RAG server is running on port 8000.";
-      } else if (error.message.includes("Server error")) {
+        return "🔴 Cannot connect to server. Please ensure the RAG server is running on port 8000.";
+      } else if (error.message.includes("Server returned")) {
         return "⚠️ The server encountered an error. Please try again.";
       }
 
@@ -112,7 +110,7 @@ function App() {
     if (!message.trim()) return;
 
     const userMessage = {
-      id: messages.length + 1,
+      id: Date.now(),
       text: message,
       sender: "student",
       timestamp: new Date().toLocaleTimeString([], {
@@ -126,11 +124,10 @@ function App() {
     setMessage("");
     setIsLoading(true);
 
-    // Get response from RAG
     const botResponse = await sendMessageToRAG(currentMessage);
 
     const botMessage = {
-      id: messages.length + 2,
+      id: Date.now() + 1,
       text: botResponse,
       sender: "bot",
       timestamp: new Date().toLocaleTimeString([], {
