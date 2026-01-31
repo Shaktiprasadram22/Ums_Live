@@ -10,38 +10,26 @@ import { Document } from "@langchain/core/documents";
 const app = express();
 const PORT = process.env.PORT || 8000;
 
-// ----------------- DEVELOPMENT CORS (Permissive) -----------------
-// Use this for local development, tighten for production
-const isDevelopment = process.env.NODE_ENV !== "production";
-
-if (isDevelopment) {
-  // Permissive CORS for development
-  app.use(
-    cors({
-      origin: true, // Allow all origins in development
-      credentials: true,
-    }),
-  );
-  console.log("⚠️  DEVELOPMENT MODE: CORS allowing all origins");
-} else {
-  // Strict CORS for production
-  app.use(
-    cors({
-      origin: ["https://ums-live.onrender.com"],
-      credentials: true,
-      methods: ["GET", "POST", "OPTIONS"],
-      allowedHeaders: ["Content-Type", "Authorization"],
-    }),
-  );
-  console.log("🔒 PRODUCTION MODE: CORS restricted");
-}
+// CORS - Allow all origins (update later with your Vercel URL)
+app.use(
+  cors({
+    origin: [
+      "https://ums-live.vercel.app", // ✅ Your Vercel frontend
+      "https://ums-live.onrender.com", // ✅ Your backend server
+      "http://localhost:3000", // Local frontend
+      "http://localhost:5000", // Local backend
+    ],
+    credentials: true,
+    methods: ["GET", "POST", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 
 app.use(express.json());
 
 let vectorstore = null;
 let totalDocuments = 0;
 
-// ----------------- LOAD VECTORSTORE -----------------
 async function initializeRAG() {
   try {
     console.log("🔄 Loading knowledge base...");
@@ -81,7 +69,6 @@ async function initializeRAG() {
   }
 }
 
-// ----------------- HEALTH CHECK -----------------
 app.get("/health", (req, res) => {
   console.log(
     "📡 Health check requested from:",
@@ -95,7 +82,6 @@ app.get("/health", (req, res) => {
   });
 });
 
-// ----------------- QUERY ENDPOINT -----------------
 app.post("/api/query", async (req, res) => {
   try {
     const { question } = req.body;
@@ -142,26 +128,12 @@ app.post("/api/query", async (req, res) => {
   }
 });
 
-// ----------------- ERROR HANDLER -----------------
-app.use((err, req, res, next) => {
-  console.error("❌ Unhandled error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    message: err.message,
-  });
-});
-
-// ----------------- START SERVER -----------------
 async function startServer() {
   await initializeRAG();
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`\n🚀 RAG Server running on port ${PORT}`);
-    console.log(`📊 Health check: http://localhost:${PORT}/health`);
-    console.log(`🔍 Query endpoint: http://localhost:${PORT}/api/query`);
-    console.log(
-      `🌍 Environment: ${isDevelopment ? "DEVELOPMENT" : "PRODUCTION"}\n`,
-    );
+    console.log(`\n🚀 RAG Server: http://localhost:${PORT}`);
+    console.log(`📊 Health: http://localhost:${PORT}/health`);
   });
 }
 
